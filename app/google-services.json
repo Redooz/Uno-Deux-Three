@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "97547933635",
+    "project_id": "uno-deux-three",
+    "storage_bucket": "uno-deux-three.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:97547933635:android:61f67b80c2801c6f55cf76",
+        "android_client_info": {
+          "package_name": "com.redoz.unodeuxthree"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "97547933635-o1il0gtl278e64r8r4tj5klim5hp3sdp.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBlMyVVrpoh3WICRgJ912w9f_8FtW-fxQ0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "97547933635-o1il0gtl278e64r8r4tj5klim5hp3sdp.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
