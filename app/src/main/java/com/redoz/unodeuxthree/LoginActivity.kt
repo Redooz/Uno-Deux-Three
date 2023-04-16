@@ -5,16 +5,16 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
-import com.redoz.unodeuxthree.databinding.ActivityMainBinding
+import com.redoz.unodeuxthree.databinding.ActivityLoginBinding
 
-class MainActivity : AppCompatActivity() {
-    private lateinit var binding: ActivityMainBinding
+class LoginActivity : AppCompatActivity() {
+    private lateinit var binding: ActivityLoginBinding
     private lateinit var mAuth: FirebaseAuth
 
     override fun onCreate(savedInstanceState: Bundle?) = try {
         super.onCreate(savedInstanceState)
 
-        binding = ActivityMainBinding.inflate(layoutInflater)
+        binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         supportActionBar?.hide()
@@ -42,11 +42,11 @@ class MainActivity : AppCompatActivity() {
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
                     // code for loggin in user
-                    val intent = Intent(this@MainActivity, HomeActivity::class.java)
-
+                    val intent = Intent(this@LoginActivity, HomeActivity::class.java)
+                    finish()
                     startActivity(intent)
                 } else {
-                    Toast.makeText(this@MainActivity,"User doesn not exist", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@LoginActivity,"User doesn not exist", Toast.LENGTH_LONG).show()
                 }
             }
 
