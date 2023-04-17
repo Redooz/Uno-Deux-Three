@@ -1,4 +1,4 @@
-package com.redoz.unodeuxthree
+package com.redoz.unodeuxthree.models
 
 import android.provider.ContactsContract.CommonDataKinds.Email
 

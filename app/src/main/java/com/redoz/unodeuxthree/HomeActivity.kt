@@ -6,10 +6,10 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import com.redoz.unodeuxthree.databinding.ActivityHomeBinding
+import com.redoz.unodeuxthree.models.User
 
 class HomeActivity : AppCompatActivity() {
     private lateinit var binding: ActivityHomeBinding
