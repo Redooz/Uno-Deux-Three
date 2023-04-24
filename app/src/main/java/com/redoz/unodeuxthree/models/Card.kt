@@ -1,12 +1,13 @@
 package com.redoz.unodeuxthree.models
 
 class Card {
+    var senderUid:String ?= null
     var color:String ?= null
     var type:String ?= null
 
     constructor(){}
-
-    constructor(color: String?, type: String?) {
+    constructor(senderId: String?, color: String?, type: String?) {
+        this.senderUid = senderId
         this.color = color
         this.type = type
     }

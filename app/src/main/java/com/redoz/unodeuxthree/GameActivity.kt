@@ -16,7 +16,7 @@ class GameActivity : AppCompatActivity() {
     private lateinit var userButtonCards: MutableList<Button>
     private lateinit var userCards: MutableMap<Int, Card>
 
-    override fun onCreate(savedInstanceState: Bundle?) {
+    override fun onCreate(savedInstanceState:  Bundle?) {
         super.onCreate(savedInstanceState)
 
         binding = ActivityGameBinding.inflate(layoutInflater)
