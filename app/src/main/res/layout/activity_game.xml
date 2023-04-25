@@ -25,7 +25,8 @@
         app:layout_constraintTop_toBottomOf="@+id/topTitle">
 
         <TextView
-            android:background="@color/white"
+            android:background="@color/black"
+            android:textColor="@color/white"
             android:width="300dp"
             android:height="400dp"
             android:gravity="center"
