@@ -24,12 +24,17 @@
         app:layout_constraintBottom_toTopOf="@+id/cardsScrollView"
         app:layout_constraintTop_toBottomOf="@+id/topTitle">
 
-        <ImageView
+        <TextView
+            android:background="@color/white"
+            android:width="300dp"
+            android:height="400dp"
+            android:gravity="center"
+            android:textSize="35sp"
             android:id="@+id/card"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            tools:src="@mipmap/ic_launcher" />
+            tools:text="test" />
 
     </FrameLayout>
 

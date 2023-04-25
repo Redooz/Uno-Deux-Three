@@ -28,7 +28,7 @@ class UserAdapter(private val context: Context, private val userList: List<User>
             val intent = Intent(context,GameActivity::class.java)
 
             intent.putExtra("currentUserName", currentUser.name)
-            intent.putExtra("uid", FirebaseAuth.getInstance().currentUser?.uid)
+            intent.putExtra("uid", currentUser.uid)
 
             context.startActivity(intent)
         }
