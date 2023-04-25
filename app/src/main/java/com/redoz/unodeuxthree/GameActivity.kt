@@ -81,7 +81,8 @@ class GameActivity : AppCompatActivity() {
                             R.color.black
                         }
                     }
-                    binding.card.setBackgroundColor(color)
+                    binding.card.setBackgroundColor(ContextCompat.getColor(this@GameActivity, color))
+
                 }
 
                 override fun onCancelled(error: DatabaseError) {
