@@ -34,10 +34,9 @@ class GameActivity : AppCompatActivity() {
         val rivalName = intent.getStringExtra("currentUserName")
         val receiverUid = intent.getStringExtra("uid")
         senderUid = FirebaseAuth.getInstance().currentUser?.uid
-        val randomUID = UUID.randomUUID()
 
-        senderRoom = receiverUid + senderUid + randomUID
-        receiverRoom = senderUid + receiverUid + randomUID
+        senderRoom = receiverUid + senderUid
+        receiverRoom = senderUid + receiverUid
 
         mDbRef = FirebaseDatabase.getInstance().reference
 
@@ -50,7 +49,7 @@ class GameActivity : AppCompatActivity() {
         gameCards = mutableListOf()
 
         binding.topTitle.text = rivalName.toString()
-        mixCards(receiverUid as String)
+        mixCards(senderUid as String)
 
         mDbRef.child("games").child(senderRoom!!).child("cards")
             .addValueEventListener(object : ValueEventListener {
@@ -89,6 +88,12 @@ class GameActivity : AppCompatActivity() {
                     TODO("Not yet implemented")
                 }
             })
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+
+        mDbRef.child("games").child(senderRoom!!).child("cards").removeValue()
     }
 
     private fun mixCards(uid: String) {
