@@ -12,5 +12,4 @@ class Card {
         this.type = type
     }
 
-
 }

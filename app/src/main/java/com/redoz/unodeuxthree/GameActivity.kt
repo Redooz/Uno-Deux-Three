@@ -5,7 +5,9 @@ import android.content.res.Resources
 import android.os.Build
 import android.os.Bundle
 import android.util.DisplayMetrics
+import android.view.View
 import android.widget.Button
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -26,6 +28,7 @@ class GameActivity : AppCompatActivity() {
     var receiverRoom: String? = null
     var senderRoom: String? = null
     var senderUid: String? = null
+    private var lastSender: String? = null
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState:  Bundle?) {
@@ -51,6 +54,8 @@ class GameActivity : AppCompatActivity() {
         binding.topTitle.text = rivalName.toString()
         mixCards(senderUid as String)
 
+        lastSender = receiverUid
+
         mDbRef.child("games").child(senderRoom!!).child("cards")
             .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
@@ -60,6 +65,7 @@ class GameActivity : AppCompatActivity() {
                     for (postSnapshot in snapshot.children) {
                         card = postSnapshot.getValue(Card::class.java)!!
                         gameCards.add(card)
+
                     }
 
                     binding.card.text = card.type
@@ -82,6 +88,13 @@ class GameActivity : AppCompatActivity() {
                     }
                     binding.card.setBackgroundColor(ContextCompat.getColor(this@GameActivity, color))
 
+                    lastSender = card.senderUid
+
+                    if (lastSender != senderUid) { // Checking if the turn is for the sender, if it isn't, the cards will be disabled
+                        binding.cardsChooser.visibility = View.VISIBLE
+                    } else {
+                        binding.cardsChooser.visibility = View.GONE
+                    }
                 }
 
                 override fun onCancelled(error: DatabaseError) {

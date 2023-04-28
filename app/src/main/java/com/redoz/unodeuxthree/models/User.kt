@@ -1,7 +1,5 @@
 package com.redoz.unodeuxthree.models
 
-import android.provider.ContactsContract.CommonDataKinds.Email
-
 class User {
     var name: String? = null
     var email: String? = null
