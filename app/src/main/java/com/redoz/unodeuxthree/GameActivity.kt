@@ -25,17 +25,23 @@ class GameActivity : AppCompatActivity() {
     private lateinit var gameCards: MutableList<Card>
     private lateinit var mDbRef: DatabaseReference
 
-    var receiverRoom: String? = null
-    var senderRoom: String? = null
-    var senderUid: String? = null
+
+    private val colors = listOf("red", "blue", "yellow", "green", "special")
+    private val regularType = listOf("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "+2", "stop")
+    private val specialType = "+4"
+    private var receiverRoom: String? = null
+    private var senderRoom: String? = null
+    private var senderUid: String? = null
+    private var receiverUid: String? = null
     private var lastSender: String? = null
+    private var numCards = 0
 
     @RequiresApi(Build.VERSION_CODES.O)
-    override fun onCreate(savedInstanceState:  Bundle?) {
+    override fun onCreate(savedInstanceState: Bundle?) = try {
         super.onCreate(savedInstanceState)
 
         val rivalName = intent.getStringExtra("currentUserName")
-        val receiverUid = intent.getStringExtra("uid")
+        receiverUid = intent.getStringExtra("uid")
         senderUid = FirebaseAuth.getInstance().currentUser?.uid
 
         senderRoom = receiverUid + senderUid
@@ -53,6 +59,7 @@ class GameActivity : AppCompatActivity() {
 
         binding.topTitle.text = rivalName.toString()
         mixCards(senderUid as String)
+        binding.topNumCards.text = userCards.size.toString()
 
         lastSender = receiverUid
 
@@ -65,35 +72,29 @@ class GameActivity : AppCompatActivity() {
                     for (postSnapshot in snapshot.children) {
                         card = postSnapshot.getValue(Card::class.java)!!
                         gameCards.add(card)
-
                     }
 
                     binding.card.text = card.type
-                    val color = when (card.color?.lowercase()) {
-                        "red" -> {
-                            R.color.red
-                        }
-                        "blue" -> {
-                            R.color.blue
-                        }
-                        "yellow" -> {
-                            R.color.yellow
-                        }
-                        "green" -> {
-                            R.color.green
-                        }
-                        else -> {
-                            R.color.black
-                        }
-                    }
-                    binding.card.setBackgroundColor(ContextCompat.getColor(this@GameActivity, color))
+
+                    val colorForButton = getColor(card.color)
+                    binding.card.setBackgroundColor(
+                        ContextCompat.getColor(
+                            this@GameActivity,
+                            colorForButton
+                        )
+                    )
 
                     lastSender = card.senderUid
 
                     if (lastSender != senderUid) { // Checking if the turn is for the sender, if it isn't, the cards will be disabled
-                        binding.cardsChooser.visibility = View.VISIBLE
+                        binding.bottomContainer.visibility = View.VISIBLE
                     } else {
-                        binding.cardsChooser.visibility = View.GONE
+                        binding.bottomContainer.visibility = View.GONE
+                    }
+
+                    if (card.type == "+4") {
+                        addFourCardsToChooser()
+
                     }
                 }
 
@@ -101,6 +102,32 @@ class GameActivity : AppCompatActivity() {
                     TODO("Not yet implemented")
                 }
             })
+
+        binding.newCardBtn.setOnClickListener {
+            val color: String = colors[Random.nextInt(0, colors.size)]
+
+            val type: String = if (color != "special") {
+                regularType[Random.nextInt(0, regularType.size)]
+            } else {
+                specialType
+            }
+            addNewCardToChooser(senderUid as String, color, type)
+        }
+    } catch (ex: Exception) {
+        println(ex)
+    }
+
+    private fun addFourCardsToChooser() {
+        for (i in 0 until 4) {
+            val color = colors[Random.nextInt(0, colors.size)]
+            val type = if (color != "special") {
+                regularType[Random.nextInt(0, regularType.size)]
+            } else {
+                specialType
+            }
+            addNewCardToChooser(receiverUid!!, color, type)
+        }
+
     }
 
     override fun onDestroy() {
@@ -109,11 +136,17 @@ class GameActivity : AppCompatActivity() {
         mDbRef.child("games").child(senderRoom!!).child("cards").removeValue()
     }
 
-    private fun mixCards(uid: String) {
-        val colors = listOf("red", "blue", "yellow", "green", "special")
-        val regularType = listOf("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "+2", "stop")
-        val specialType = listOf("Change Color", "+4")
+    private fun getColor(color: String?): Int {
+        return when (color?.lowercase()) {
+            "red" -> R.color.red
+            "blue" -> R.color.blue
+            "yellow" -> R.color.yellow
+            "green" -> R.color.green
+            else -> R.color.black
+        }
+    }
 
+    private fun mixCards(uid: String) {
         for (i in 0 until 5) {
             val buttonCard = Button(this)
             val color = colors[Random.nextInt(0, colors.size)]
@@ -121,41 +154,92 @@ class GameActivity : AppCompatActivity() {
             val type: String = if (color != "special") {
                 regularType[Random.nextInt(0, regularType.size)]
             } else {
-                specialType[Random.nextInt(0, specialType.size)]
+                specialType
             }
 
             val newCard = Card(uid, color, type)
 
-            buttonCard.id = i
+            val id = View.generateViewId()
+
+            buttonCard.id = id
 
             userButtonCards.add(buttonCard)
-            userCards.put(i, newCard)
+            userCards.put(id, newCard)
 
             applyStyleToCardButton(buttonCard, newCard)
             binding.cardsChooser.addView(buttonCard)
 
             // Adding cards to database
             buttonCard.setOnClickListener { sendCard(buttonCard) }
+            numCards = i
         }
     }
 
-    private fun sendCard(buttonCard: Button) {
-        senderRoom?.let { mDbRef.child("games").child(it).child("cards").push()
-            .setValue(userCards[buttonCard.id]).addOnSuccessListener {
-                receiverRoom?.let { it1 -> mDbRef.child("games").child(it1).child("cards").push()
-                    .setValue(userCards[buttonCard.id])}
-            }}
+    private fun canSendCard(newCard: Card?): Boolean {
+        val lastCard = if (gameCards.isNotEmpty()) {
+            gameCards.last()
+        } else {
+            return true
+        }
+
+        return lastCard.isCompatibleWith(newCard)
     }
 
-    private fun addNewCard(uid:String, color: String, type: String) {
-        val newCard = Card(uid,color, type)
-        val newButtonCard = Button(this)
+    private fun sendCard(buttonCard: Button) {
+        val newCard = userCards[buttonCard.id]
+        if (canSendCard(newCard)) {
+            senderRoom?.let { senderRoom ->
+                sendCardToDatabase(senderRoom, buttonCard)
+            }
 
-        applyStyleToCardButton(newButtonCard, newCard)
-        userButtonCards.add(newButtonCard)
-        userCards.put(userButtonCards.size + 1, newCard)
+            removeCardFromChooser(buttonCard)
 
-        newButtonCard.setOnClickListener { sendCard(newButtonCard) }
+        } else {
+            Toast.makeText(this@GameActivity, "That card isn't compatible", Toast.LENGTH_SHORT)
+                .show()
+        }
+    }
+
+    private fun sendCardToDatabase(senderRoom: String, buttonCard: Button) {
+        // push the card to the sender's room in the database
+        val senderCardRef = mDbRef.child("games").child(senderRoom).child("cards").push()
+        val senderCard = userCards[buttonCard.id]
+        senderCardRef.setValue(senderCard).addOnSuccessListener {
+            // check if receiver room is not null using safe call operator
+            receiverRoom?.let { receiverRoom ->
+                // push the card to the receiver's room in the database
+                val receiverCardRef =
+                    mDbRef.child("games").child(receiverRoom).child("cards").push()
+                receiverCardRef.setValue(senderCard)
+            }
+        }
+    }
+
+    private fun removeCardFromChooser(buttonCard: Button) {
+        userButtonCards.remove(buttonCard)
+        userCards.remove(buttonCard.id)
+
+        binding.cardsChooser.removeView(buttonCard)
+        binding.topNumCards.text = userCards.size.toString()
+    }
+
+    private fun addNewCardToChooser(uid: String, color: String, type: String) {
+        val buttonCard = Button(this)
+        val newCard = Card(uid, color, type)
+
+        val id = View.generateViewId()
+        buttonCard.id = id
+
+        userButtonCards.add(buttonCard)
+
+        userCards[id] = newCard
+
+        applyStyleToCardButton(buttonCard, newCard)
+
+        binding.cardsChooser.addView(buttonCard)
+        buttonCard.setOnClickListener { sendCard(buttonCard) }
+
+        binding.topNumCards.text = userCards.size.toString()
     }
 
     private fun applyStyleToCardButton(card: Button, newCard: Card) {

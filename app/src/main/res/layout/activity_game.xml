@@ -6,58 +6,96 @@
     android:layout_height="match_parent"
     tools:context=".GameActivity">
 
-    <TextView
-        android:id="@+id/topTitle"
+    <LinearLayout
+        android:id="@+id/topContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="#AC020F"
         android:padding="12dp"
-        android:textColor="@color/white"
-        android:textSize="40sp"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
-        tools:text="Rival's Name" />
+        <TextView
+            android:id="@+id/topTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.5"
+            android:textColor="@color/white"
+            android:textSize="40sp"
+
+            tools:text="Rival's Name" />
+
+        <TextView
+            android:id="@+id/topNumCards"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.5"
+            android:gravity="end"
+            android:textColor="@color/white"
+            android:textSize="40sp"
+
+            tools:text="0" />
+    </LinearLayout>
+
 
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_constraintBottom_toTopOf="@+id/cardsScrollView"
-        app:layout_constraintTop_toBottomOf="@+id/topTitle">
+        app:layout_constraintBottom_toTopOf="@+id/bottomContainer"
+        app:layout_constraintTop_toBottomOf="@+id/topContainer">
 
         <TextView
-            android:background="@color/black"
-            android:textColor="@color/white"
-            android:width="300dp"
-            android:height="400dp"
-            android:gravity="center"
-            android:textSize="35sp"
             android:id="@+id/card"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
+            android:width="300dp"
+            android:height="400dp"
+            android:background="@color/black"
+            android:gravity="center"
+            android:textColor="@color/white"
+            android:textSize="35sp"
             tools:text="test" />
 
     </FrameLayout>
 
-    <HorizontalScrollView
-        android:id="@+id/cardsScrollView"
+    <LinearLayout
+        android:id="@+id/bottomContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+
         android:layout_marginBottom="12dp"
 
         app:layout_constraintBottom_toBottomOf="parent">
 
-
-        <LinearLayout
-            android:id="@+id/cardsChooser"
-            android:layout_width="wrap_content"
+        <Button
+            android:id="@+id/newCardBtn"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:orientation="horizontal">
+            android:layout_marginEnd="8dp"
+            android:layout_weight="0.2"
+            android:backgroundTint="@color/black"
+            android:text="New Card"
 
-        </LinearLayout>
+            android:textColor="@color/white" />
 
-    </HorizontalScrollView>
+        <HorizontalScrollView
+            android:id="@+id/cardsScrollView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.8">
 
+
+            <LinearLayout
+                android:id="@+id/cardsChooser"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+            </LinearLayout>
+
+        </HorizontalScrollView>
+
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
