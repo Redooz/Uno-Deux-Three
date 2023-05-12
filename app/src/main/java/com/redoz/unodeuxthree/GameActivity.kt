@@ -84,7 +84,9 @@ class GameActivity : AppCompatActivity() {
                         )
                     )
 
-                    lastSender = card.senderUid
+                    if (card.type != "stop") {
+                        lastSender = card.senderUid
+                    }
 
                     if (lastSender != senderUid) { // Checking if the turn is for the sender, if it isn't, the cards will be disabled
                         binding.bottomContainer.visibility = View.VISIBLE
@@ -92,10 +94,9 @@ class GameActivity : AppCompatActivity() {
                         binding.bottomContainer.visibility = View.GONE
                     }
 
-                    if (card.type == "+4") {
+                    /* if (card.type == "+4") {
                         addFourCardsToChooser()
-
-                    }
+                    } */
                 }
 
                 override fun onCancelled(error: DatabaseError) {
@@ -164,7 +165,7 @@ class GameActivity : AppCompatActivity() {
             buttonCard.id = id
 
             userButtonCards.add(buttonCard)
-            userCards.put(id, newCard)
+            userCards[id] = newCard
 
             applyStyleToCardButton(buttonCard, newCard)
             binding.cardsChooser.addView(buttonCard)
