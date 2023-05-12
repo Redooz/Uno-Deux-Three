@@ -9,6 +9,7 @@ import android.view.View
 import android.widget.Button
 import android.widget.Toast
 import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.google.firebase.auth.FirebaseAuth
@@ -26,27 +27,23 @@ class GameActivity : AppCompatActivity() {
     private lateinit var mDbRef: DatabaseReference
 
 
-    private val colors = listOf("red", "blue", "yellow", "green", "special")
-    private val regularType = listOf("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "+2", "stop")
-    private val specialType = "+4"
+    private val colors = listOf("red", "blue", "yellow", "green")
+    private val regularType = listOf("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "stop")
     private var receiverRoom: String? = null
     private var senderRoom: String? = null
     private var senderUid: String? = null
     private var receiverUid: String? = null
     private var lastSender: String? = null
-    private var numCards = 0
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) = try {
         super.onCreate(savedInstanceState)
-
         val rivalName = intent.getStringExtra("currentUserName")
         receiverUid = intent.getStringExtra("uid")
         senderUid = FirebaseAuth.getInstance().currentUser?.uid
 
         senderRoom = receiverUid + senderUid
         receiverRoom = senderUid + receiverUid
-
         mDbRef = FirebaseDatabase.getInstance().reference
 
         binding = ActivityGameBinding.inflate(layoutInflater)
@@ -58,7 +55,9 @@ class GameActivity : AppCompatActivity() {
         gameCards = mutableListOf()
 
         binding.topTitle.text = rivalName.toString()
+
         mixCards(senderUid as String)
+
         binding.topNumCards.text = userCards.size.toString()
 
         lastSender = receiverUid
@@ -93,48 +92,66 @@ class GameActivity : AppCompatActivity() {
                     } else {
                         binding.bottomContainer.visibility = View.GONE
                     }
-
-                    /* if (card.type == "+4") {
-                        addFourCardsToChooser()
-                    } */
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    TODO("Not yet implemented")
+                    Toast.makeText(this@GameActivity, error.message, Toast.LENGTH_LONG).show()
                 }
             })
+
+        mDbRef.child("games").child(senderRoom!!).child("cards").addChildEventListener(object :
+            ChildEventListener {
+            override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {}
+
+            override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {}
+
+            override fun onChildRemoved(snapshot: DataSnapshot) {
+                if (!this@GameActivity.isDestroyed) {
+                    showGameResultDialog("Finished", "One user lost conecction")
+                }
+            }
+
+            override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {}
+
+            override fun onCancelled(error: DatabaseError) {}
+
+        })
 
         binding.newCardBtn.setOnClickListener {
             val color: String = colors[Random.nextInt(0, colors.size)]
 
-            val type: String = if (color != "special") {
-                regularType[Random.nextInt(0, regularType.size)]
-            } else {
-                specialType
-            }
-            addNewCardToChooser(senderUid as String, color, type)
+            val type: String = regularType[Random.nextInt(0, regularType.size)]
+
+            val newCard = Card(senderUid, color, type)
+
+            addNewCardToChooser(newCard)
         }
     } catch (ex: Exception) {
         println(ex)
     }
 
-    private fun addFourCardsToChooser() {
-        for (i in 0 until 4) {
-            val color = colors[Random.nextInt(0, colors.size)]
-            val type = if (color != "special") {
-                regularType[Random.nextInt(0, regularType.size)]
-            } else {
-                specialType
-            }
-            addNewCardToChooser(receiverUid!!, color, type)
+    override fun onDestroy() {
+        super.onDestroy()
+
+        mDbRef.child("games").child(senderRoom!!).child("cards").removeValue().addOnCompleteListener {
+            mDbRef.child("games").child(receiverRoom!!).child("cards").removeValue()
         }
 
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-
-        mDbRef.child("games").child(senderRoom!!).child("cards").removeValue()
+    /**
+     * Show a dialog with a title and a message
+     * */
+    private fun showGameResultDialog(title: String, message: String) {
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle(title)
+        builder.setMessage(message)
+        builder.setPositiveButton("Exit") { dialog, which ->
+            dialog.dismiss()
+            finish()
+        }
+        builder.setCancelable(false)
+        builder.show()
     }
 
     private fun getColor(color: String?): Int {
@@ -149,30 +166,13 @@ class GameActivity : AppCompatActivity() {
 
     private fun mixCards(uid: String) {
         for (i in 0 until 5) {
-            val buttonCard = Button(this)
             val color = colors[Random.nextInt(0, colors.size)]
 
-            val type: String = if (color != "special") {
-                regularType[Random.nextInt(0, regularType.size)]
-            } else {
-                specialType
-            }
+            val type: String = regularType[Random.nextInt(0, regularType.size)]
 
             val newCard = Card(uid, color, type)
 
-            val id = View.generateViewId()
-
-            buttonCard.id = id
-
-            userButtonCards.add(buttonCard)
-            userCards[id] = newCard
-
-            applyStyleToCardButton(buttonCard, newCard)
-            binding.cardsChooser.addView(buttonCard)
-
-            // Adding cards to database
-            buttonCard.setOnClickListener { sendCard(buttonCard) }
-            numCards = i
+            addNewCardToChooser(newCard)
         }
     }
 
@@ -194,7 +194,6 @@ class GameActivity : AppCompatActivity() {
             }
 
             removeCardFromChooser(buttonCard)
-
         } else {
             Toast.makeText(this@GameActivity, "That card isn't compatible", Toast.LENGTH_SHORT)
                 .show()
@@ -224,9 +223,8 @@ class GameActivity : AppCompatActivity() {
         binding.topNumCards.text = userCards.size.toString()
     }
 
-    private fun addNewCardToChooser(uid: String, color: String, type: String) {
+    private fun addNewCardToChooser(newCard: Card) {
         val buttonCard = Button(this)
-        val newCard = Card(uid, color, type)
 
         val id = View.generateViewId()
         buttonCard.id = id

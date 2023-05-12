@@ -46,7 +46,7 @@ class LoginActivity : AppCompatActivity() {
                     finish()
                     startActivity(intent)
                 } else {
-                    Toast.makeText(this@LoginActivity,"User doesn not exist", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@LoginActivity,"User does not exist", Toast.LENGTH_LONG).show()
                 }
             }
 
