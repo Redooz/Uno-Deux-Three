@@ -26,7 +26,6 @@ class GameActivity : AppCompatActivity() {
     private lateinit var gameCards: MutableList<Card>
     private lateinit var mDbRef: DatabaseReference
 
-
     private val colors = listOf("red", "blue", "yellow", "green")
     private val regularType = listOf("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "stop")
     private var receiverRoom: String? = null
@@ -34,6 +33,7 @@ class GameActivity : AppCompatActivity() {
     private var senderUid: String? = null
     private var receiverUid: String? = null
     private var lastSender: String? = null
+    private var winner: String? = "Rival"
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) = try {
@@ -101,25 +101,24 @@ class GameActivity : AppCompatActivity() {
 
         mDbRef.child("games").child(senderRoom!!).child("cards").addChildEventListener(object :
             ChildEventListener {
-            override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {}
-
+            override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
+                if (hasWon()) {
+                    showGameResultDialog("Finished", "$winner won")
+                }
+            }
             override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {}
+            override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {}
+            override fun onCancelled(error: DatabaseError) {}
 
             override fun onChildRemoved(snapshot: DataSnapshot) {
                 if (!this@GameActivity.isDestroyed) {
                     showGameResultDialog("Finished", "One user lost conecction")
                 }
             }
-
-            override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {}
-
-            override fun onCancelled(error: DatabaseError) {}
-
         })
 
         binding.newCardBtn.setOnClickListener {
             val color: String = colors[Random.nextInt(0, colors.size)]
-
             val type: String = regularType[Random.nextInt(0, regularType.size)]
 
             val newCard = Card(senderUid, color, type)
@@ -128,6 +127,14 @@ class GameActivity : AppCompatActivity() {
         }
     } catch (ex: Exception) {
         println(ex)
+    }
+
+    private fun hasWon(): Boolean {
+        if (this.userCards.isEmpty()) {
+            winner = "You"
+            return true
+        }
+        return false
     }
 
     override fun onDestroy() {
